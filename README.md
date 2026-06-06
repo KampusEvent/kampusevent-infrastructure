@@ -39,7 +39,7 @@ docker compose up --build
 | Attendance | http://localhost:8004 | 8004 |
 | Prometheus | http://localhost:9090 | 9090 |
 | Grafana | http://localhost:3000 | 3000 |
-| Jaeger UI | http://localhost:16686 | 16686 |
+| Jaeger UI | http://localhost:16687 | 16687 |
 
 **Grafana login:** admin / admin (default)
 

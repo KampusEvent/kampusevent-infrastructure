@@ -2,7 +2,7 @@ services:
   # ── Databases ──────────────────────────────────────────────
   auth-db:
     image: postgres:16-alpine
-    container_name: auth-db
+    container_name: kampusevent-auth-db
     environment:
       POSTGRES_USER: auth_user
       POSTGRES_PASSWORD: auth_pass
@@ -19,7 +19,7 @@ services:
 
   event-db:
     image: postgres:16-alpine
-    container_name: event-db
+    container_name: kampusevent-event-db
     environment:
       POSTGRES_USER: event_user
       POSTGRES_PASSWORD: event_pass
@@ -36,7 +36,7 @@ services:
 
   registration-db:
     image: postgres:16-alpine
-    container_name: registration-db
+    container_name: kampusevent-registration-db
     environment:
       POSTGRES_USER: registration_user
       POSTGRES_PASSWORD: registration_pass
@@ -53,7 +53,7 @@ services:
 
   attendance-db:
     image: postgres:16-alpine
-    container_name: attendance-db
+    container_name: kampusevent-attendance-db
     environment:
       POSTGRES_USER: attendance_user
       POSTGRES_PASSWORD: attendance_pass
@@ -73,7 +73,7 @@ services:
     build:
       context: ../kampusevent-auth-service
       dockerfile: Dockerfile
-    container_name: auth-service
+    container_name: kampusevent-auth-service
     ports:
       - "8001:8001"
     environment:
@@ -102,7 +102,7 @@ services:
     build:
       context: ../kampusevent-event-service
       dockerfile: Dockerfile
-    container_name: event-service
+    container_name: kampusevent-event-service
     ports:
       - "8002:8002"
     environment:
@@ -130,7 +130,7 @@ services:
     build:
       context: ../kampusevent-registration-service
       dockerfile: Dockerfile
-    container_name: registration-service
+    container_name: kampusevent-registration-service
     ports:
       - "8003:8003"
     environment:
@@ -164,7 +164,7 @@ services:
     build:
       context: ../kampusevent-attendance-service
       dockerfile: Dockerfile
-    container_name: attendance-service
+    container_name: kampusevent-attendance-service
     ports:
       - "8004:8004"
     environment:
@@ -194,11 +194,9 @@ services:
   # ── Observability ──────────────────────────────────────────
   jaeger:
     image: jaegertracing/all-in-one:1.54
-    container_name: jaeger
+    container_name: kampusevent-jaeger
     ports:
-      - "16686:16686"
-      - "4317:4317"
-      - "4318:4318"
+      - "16687:16686"
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
     networks:
@@ -206,7 +204,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.49.1
-    container_name: prometheus
+    container_name: kampusevent-prometheus
     ports:
       - "9090:9090"
     volumes:
@@ -229,7 +227,7 @@ services:
 
   grafana:
     image: grafana/grafana:10.3.1
-    container_name: grafana
+    container_name: kampusevent-grafana
     ports:
       - "3000:3000"
     environment:
