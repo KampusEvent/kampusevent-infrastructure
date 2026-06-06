@@ -84,6 +84,7 @@ services:
       JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-60}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      SEED_USERS: "true"
     depends_on:
       auth-db:
         condition: service_healthy
