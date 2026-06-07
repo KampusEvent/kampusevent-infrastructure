@@ -101,7 +101,7 @@ Panduan lengkap: [RAILWAY.md](RAILWAY.md) — section **API Gateway**.
 
 | Item | Nilai |
 |------|-------|
-| Root Directory | **`gateway`** |
+| Root Directory | **`/`** (default) atau **`gateway`** — lihat `railway.toml` |
 | PostgreSQL | Tidak perlu |
 | Upstreams | `AUTH_SERVICE_URL`, `EVENT_SERVICE_URL`, dll. (URL publik) |
 | CORS | `FRONTEND_ORIGIN` = URL publik frontend |

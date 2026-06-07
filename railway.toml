@@ -1,0 +1,12 @@
+# Deploy API Gateway dari repo root (Root Directory = /).
+# Alternatif: set Root Directory = gateway dan pakai gateway/railway.toml saja.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "gateway/Dockerfile"
+watchPatterns = ["gateway/**"]
+
+[deploy]
+healthcheckPath = "/gateway/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"

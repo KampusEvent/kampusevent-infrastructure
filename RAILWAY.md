@@ -107,7 +107,7 @@ Setelah tiap deploy: **Settings → Networking → Generate Domain** → catat U
 | `kampusevent-event-service` | `/` |
 | `kampusevent-registration-service` | `/` |
 | `kampusevent-attendance-service` | `/` |
-| `kampusevent-infrastructure` | **`gateway`** |
+| `kampusevent-infrastructure` | `/` (default) **atau** `gateway` |
 | `kampusevent-frontend` | `/` |
 
 ---
@@ -122,7 +122,7 @@ Setelah tiap deploy: **Settings → Networking → Generate Domain** → catat U
 | `JWT_ACCESS_EXPIRE_MINUTES` | `15` | |
 | `JWT_REFRESH_EXPIRE_DAYS` | `7` | |
 | `REFRESH_COOKIE_SECURE` | `true` | ✅ |
-| `REFRESH_COOKIE_SAMESITE` | `none` | ✅ |
+| `REFRESH_COOKIE_SAMESITE` | `none` (lowercase, tanpa tanda kutip) | ✅ |
 | `SEED_USERS` | `true` (demo) / `false` (prod) | |
 | `LOG_LEVEL` | `INFO` | |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | *(kosongkan)* | |
@@ -182,7 +182,9 @@ Demo accounts (`SEED_USERS=true`): `organizer@campus.edu` / `organizer123`, dll.
 
 ## 5. API Gateway
 
-**Root Directory:** `gateway`
+**Root Directory:** `/` (default — pakai `railway.toml` di root repo) **atau** `gateway`.
+
+> Build gagal *"Railpack could not determine how to build"* → Railway tidak menemukan Dockerfile. Push `railway.toml` di root infra, atau set Root Directory = `gateway`.
 
 | Variable | Nilai | Wajib |
 |----------|-------|-------|
@@ -217,9 +219,11 @@ Setelah Frontend deploy → update `FRONTEND_ORIGIN` di Gateway → redeploy Gat
 
 | Gejala | Penyebab | Solusi |
 |--------|----------|--------|
+| Railpack build error (Gateway) | Root repo tanpa `railway.toml` | Push `kampusevent-infrastructure/railway.toml` atau Root Directory = `gateway` |
 | `localhost:5432` refused | `DATABASE_URL` belum diset | Set dari `DATABASE_PUBLIC_URL` |
 | `railway.internal` not found | URL internal / beda project | Pakai `DATABASE_PUBLIC_URL` |
 | 502 Application failed to respond | Port mismatch (`EXPOSE` vs `$PORT`) | Push Dockerfile terbaru (tanpa EXPOSE) atau set Port di Networking |
+| 500 login `samesite must be...` | `REFRESH_COOKIE_SAMESITE` salah | Set `none` (lowercase, tanpa `"`) — bukan `None`, `NONE`, atau kosong |
 | 401 login | User belum di-seed | `SEED_USERS=true`, redeploy Auth |
 | CORS error | `FRONTEND_ORIGIN` salah | Harus persis `https://...` frontend |
 | Jaeger log spam | OTEL ke localhost | Kosongkan `OTEL_EXPORTER_OTLP_ENDPOINT` |
