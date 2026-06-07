@@ -5,6 +5,7 @@ Repository integrasi untuk seluruh microservices KampusEvent.
 ## Tanggung Jawab
 
 - Docker Compose orchestration (semua service + database + observability)
+- API Gateway (NGINX) — single entry point `:8080`
 - Konfigurasi Prometheus, Grafana, Jaeger
 - End-to-End & Contract testing
 - Dokumentasi integrasi
@@ -19,6 +20,7 @@ Repository integrasi untuk seluruh microservices KampusEvent.
   ├── kampusevent-event-service/
   ├── kampusevent-registration-service/
   ├── kampusevent-attendance-service/
+  ├── kampusevent-frontend/          ← React UI (opsional, jalankan terpisah)
   └── kampusevent-infrastructure/   ← kamu di sini
   ```
 
@@ -31,26 +33,24 @@ docker compose up --build
 
 **Environment variables penting:** `JWT_SECRET`, `INTERNAL_API_KEY` (shared Registration ↔ Attendance)
 
-## Service URLs
+## URLs (Host)
 
-| Service | URL | Port |
-|---------|-----|------|
-| Auth | http://localhost:8001 | 8001 |
-| Event | http://localhost:8002 | 8002 |
-| Registration | http://localhost:8003 | 8003 |
-| Attendance | http://localhost:8004 | 8004 |
-| **API Gateway** | **http://localhost:8080** | **8080** |
-| Prometheus | http://localhost:9090 | 9090 |
-| Grafana | http://localhost:3000 | 3000 |
-| Jaeger UI | http://localhost:16687 | 16687 |
+| Service | URL | Catatan |
+|---------|-----|---------|
+| **API Gateway** | http://localhost:8080 | **Satu-satunya entry point API untuk client** |
+| Prometheus | http://localhost:9090 | Metrics |
+| Grafana | http://localhost:3000 | Dashboard RED (admin/admin) |
+| Jaeger UI | http://localhost:16687 | Distributed tracing |
+| Frontend (dev) | http://localhost:5173 | `npm run dev` di `kampusevent-frontend` |
 
-**Grafana login:** admin / admin (default)
+> Port service `:8001–8004` **tidak di-expose** ke host. Akses internal via Docker network (`http://auth-service:8001`, dll.).
 
 ## Dokumentasi Integrasi
 
 Lihat [INTEGRATION.md](INTEGRATION.md) untuk panduan lengkap:
 - Skenario manual step-by-step
 - Service communication map
+- Business rules (status event, registrasi, check-in)
 - Observability guide
 - Troubleshooting
 
@@ -69,7 +69,7 @@ pytest -v
 | `test_e2e_flow.py` | Full flow end-to-end |
 | `test_phase1_flow.py` | Auth + Event |
 | `test_phase2_flow.py` | Registration |
-| `test_phase3_flow.py` | Attendance |
+| `test_phase3_flow.py` | Attendance (jadwal ongoing untuk check-in) |
 | `test_contract_auth.py` | Contract Auth `GET /me` |
 | `test_contract_event.py` | Contract Registration ↔ Event |
 | `test_contract_registration.py` | Contract Attendance ↔ Registration |
@@ -93,7 +93,7 @@ Rate limiting (NGINX):
 - Auth endpoints: 10 req/s per IP (burst 20)
 - Login/register: 60 req/min per IP (burst 15) → HTTP 429
 
-Lihat [INTEGRATION.md](INTEGRATION.md) untuk detail routing.
+Lihat [INTEGRATION.md](INTEGRATION.md) untuk detail routing & CORS (credentials untuk refresh cookie).
 
 ## Troubleshooting
 
@@ -104,6 +104,8 @@ Lihat [INTEGRATION.md](INTEGRATION.md) untuk detail routing.
 **Jaeger tidak menerima trace:** Verifikasi `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317`
 
 **Grafana kosong:** Jalankan E2E tests untuk generate traffic, lalu refresh dashboard
+
+**CORS / cookie:** Frontend dev pakai Vite proxy; gateway sudah set `Access-Control-Allow-Credentials`
 
 ## Definition of Done
 
@@ -116,3 +118,4 @@ Lihat [INTEGRATION.md](INTEGRATION.md) untuk detail routing.
 - [x] Contract tests pass
 - [x] API Gateway routing & rate limiting
 - [x] Service-to-service auth documented
+- [x] Gateway-only external API access
