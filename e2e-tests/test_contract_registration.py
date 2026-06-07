@@ -14,6 +14,7 @@ def test_registration_ticket_contract(
     registration_url: str,
     organizer_token: str,
     participant_token: str,
+    internal_api_key: str,
 ) -> None:
     """Attendance Service expects these fields from GET /registrations/ticket/{code}."""
     with httpx.Client(timeout=15.0) as client:
@@ -42,7 +43,8 @@ def test_registration_ticket_contract(
         assert TICKET_PATTERN.match(registration["ticket_code"])
 
         ticket_lookup = client.get(
-            f"{registration_url}/registrations/ticket/{registration['ticket_code']}"
+            f"{registration_url}/registrations/ticket/{registration['ticket_code']}",
+            headers={"X-Internal-API-Key": internal_api_key},
         )
         assert ticket_lookup.status_code == 200
         ticket_body = ticket_lookup.json()

@@ -29,6 +29,8 @@ cp .env.example .env
 docker compose up --build
 ```
 
+**Environment variables penting:** `JWT_SECRET`, `INTERNAL_API_KEY` (shared Registration ↔ Attendance)
+
 ## Service URLs
 
 | Service | URL | Port |
@@ -111,3 +113,5 @@ Lihat [INTEGRATION.md](INTEGRATION.md) untuk detail routing.
 - [x] E2E health test passes
 - [x] E2E full flow test passes
 - [x] Contract tests pass
+- [x] API Gateway routing & rate limiting
+- [x] Service-to-service auth documented

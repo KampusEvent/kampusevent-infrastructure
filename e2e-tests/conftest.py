@@ -52,6 +52,11 @@ def participant_token(auth_url: str) -> str:
 
 
 @pytest.fixture(scope="session")
+def internal_api_key() -> str:
+    return os.getenv("INTERNAL_API_KEY", "change-me-internal-key")
+
+
+@pytest.fixture(scope="session")
 def admin_token(auth_url: str) -> str:
     response = httpx.post(
         f"{auth_url}/login",

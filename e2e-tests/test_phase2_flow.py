@@ -8,6 +8,7 @@ def test_phase2_registration_flow(
     auth_url: str,
     event_url: str,
     registration_url: str,
+    internal_api_key: str,
 ) -> None:
     """Phase 2: organizer creates event, participant registers and receives ticket."""
     with httpx.Client(timeout=15.0) as client:
@@ -57,6 +58,9 @@ def test_phase2_registration_flow(
         )
         assert duplicate.status_code == 409
 
-        ticket_lookup = client.get(f"{registration_url}/registrations/ticket/{body['ticket_code']}")
+        ticket_lookup = client.get(
+            f"{registration_url}/registrations/ticket/{body['ticket_code']}",
+            headers={"X-Internal-API-Key": internal_api_key},
+        )
         assert ticket_lookup.status_code == 200
         assert ticket_lookup.json()["id"] == body["id"]

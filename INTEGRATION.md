@@ -22,6 +22,7 @@ sequenceDiagram
     Reg-->>P: ticket_code
     O->>Att: POST /attendance/check-in
     Att->>Reg: GET /registrations/ticket/{code}
+    Att->>Event: GET /events/{id}
     Att-->>O: attendance recorded
 ```
 
@@ -30,10 +31,32 @@ sequenceDiagram
 | From | To | Endpoint | Purpose |
 |------|-----|----------|---------|
 | Registration | Auth | `GET /me` | Validasi JWT participant |
-| Registration | Event | `GET /events/{id}` | Validasi event, status, kuota |
-| Attendance | Registration | `GET /registrations/ticket/{code}` | Validasi tiket |
+| Registration | Event | `GET /events/{id}` | Validasi event, status, kuota, kepemilikan |
+| Attendance | Registration | `GET /registrations/ticket/{code}` | Validasi tiket (wajib `X-Internal-API-Key`) |
+| Attendance | Event | `GET /events/{id}` | Verifikasi organizer pemilik event |
 
 **Aturan:** Tidak ada akses langsung ke database service lain.
+
+## Service-to-Service Authentication
+
+Endpoint internal **tidak boleh** diakses publik tanpa autentikasi:
+
+| Endpoint | Header | Env Var |
+|----------|--------|---------|
+| `GET /registrations/ticket/{code}` | `X-Internal-API-Key: <key>` | `INTERNAL_API_KEY` |
+
+Attendance Service otomatis mengirim header ini saat memanggil Registration Service. Nilai harus **sama** di kedua service (dikonfigurasi via `docker-compose.yml`).
+
+## Authorization Rules
+
+| Aksi | Siapa | Aturan |
+|------|-------|--------|
+| Update/delete event | Organizer | Hanya event dengan `created_by == user_id` |
+| Update/delete event | Admin | Semua event |
+| List registrasi | Organizer | Wajib `?event_id=` + verifikasi kepemilikan event |
+| List registrasi | Admin | Semua (opsional filter `event_id`) |
+| Check-in | Organizer | Hanya event miliknya (`created_by`) |
+| Check-in | Admin | Semua event |
 
 ## Menjalankan Full Stack
 
@@ -143,6 +166,8 @@ Authorization: Bearer <participant_token>
 
 Response berisi `ticket_code` e.g. `EVT-2026-ABCD1234`.
 
+> **Catatan:** Lookup tiket (`GET /registrations/ticket/{code}`) hanya untuk panggilan antar service — wajib header `X-Internal-API-Key`. Client eksternal tidak perlu memanggil endpoint ini.
+
 ### 4. Check-In
 
 ```http
@@ -219,8 +244,19 @@ Shared via `kampusevent-infrastructure/.env`:
 | Variable | Deskripsi |
 |----------|-----------|
 | `JWT_SECRET` | Harus sama di semua service |
+| `INTERNAL_API_KEY` | Shared key untuk panggilan antar service (Registration ↔ Attendance) |
 | `SEED_USERS` | `true` untuk akun development |
 | `E2E_*_URL` | URL untuk E2E tests |
+
+## Database Migrations
+
+Setiap service menjalankan `alembic upgrade head` saat container startup (lihat `Dockerfile` masing-masing). Untuk database legacy yang sudah punya tabel dari `create_all()`, fallback `alembic stamp head` otomatis dijalankan.
+
+Untuk fresh start (reset semua data):
+```bash
+docker compose down -v
+docker compose up --build
+```
 
 ## Troubleshooting
 
@@ -244,3 +280,6 @@ Shared via `kampusevent-infrastructure/.env`:
 - [x] E2E full flow lulus
 - [x] Contract tests lulus
 - [x] Resilience pattern (timeout, retry, fallback) di service clients
+- [x] Service-to-service auth (`INTERNAL_API_KEY`)
+- [x] Resource ownership enforcement
+- [x] Alembic migrations on startup
