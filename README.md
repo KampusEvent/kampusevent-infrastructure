@@ -37,6 +37,7 @@ docker compose up --build
 | Event | http://localhost:8002 | 8002 |
 | Registration | http://localhost:8003 | 8003 |
 | Attendance | http://localhost:8004 | 8004 |
+| **API Gateway** | **http://localhost:8080** | **8080** |
 | Prometheus | http://localhost:9090 | 9090 |
 | Grafana | http://localhost:3000 | 3000 |
 | Jaeger UI | http://localhost:16687 | 16687 |
@@ -70,6 +71,26 @@ pytest -v
 | `test_contract_event.py` | Contract Registration ↔ Event |
 | `test_contract_registration.py` | Contract Attendance ↔ Registration |
 | `test_observability.py` | Prometheus targets & metrics |
+| `test_gateway.py` | API Gateway routing & rate limiting |
+
+## API Gateway
+
+Single entry point untuk client eksternal: **http://localhost:8080**
+
+| Gateway Path | Service |
+|--------------|---------|
+| `/auth/*` | Auth Service |
+| `/events` | Event Service |
+| `/registrations` | Registration Service |
+| `/attendance` | Attendance Service |
+| `/gateway/health` | Gateway health check |
+
+Rate limiting (NGINX):
+- General API: 100 req/s per IP (burst 50)
+- Auth endpoints: 10 req/s per IP (burst 20)
+- Login/register: 5 req/min per IP (burst 3) → HTTP 429
+
+Lihat [INTEGRATION.md](INTEGRATION.md) untuk detail routing.
 
 ## Troubleshooting
 

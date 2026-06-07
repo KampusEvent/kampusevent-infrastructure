@@ -244,6 +244,32 @@ services:
     networks:
       - kampusevent-net
 
+  # ── API Gateway ────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: kampusevent-api-gateway
+    ports:
+      - "8080:80"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      event-service:
+        condition: service_healthy
+      registration-service:
+        condition: service_healthy
+      attendance-service:
+        condition: service_healthy
+    networks:
+      - kampusevent-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/gateway/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 networks:
   kampusevent-net:
     driver: bridge

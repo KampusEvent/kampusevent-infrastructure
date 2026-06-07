@@ -49,6 +49,52 @@ Tunggu semua container healthy:
 docker compose ps
 ```
 
+## API Gateway (Port 8080)
+
+Client eksternal sebaiknya mengakses sistem melalui **API Gateway** — bukan langsung ke port service.
+
+```
+Client → API Gateway :8080 → Microservice
+              ↓
+         Rate Limiting (NGINX)
+```
+
+### Routing
+
+| Gateway URL | Forward ke | Contoh |
+|-------------|------------|--------|
+| `http://localhost:8080/auth/*` | Auth :8001 | `/auth/login`, `/auth/register` |
+| `http://localhost:8080/events` | Event :8002 | `/events`, `/events/{id}` |
+| `http://localhost:8080/registrations` | Registration :8003 | `/registrations` |
+| `http://localhost:8080/attendance` | Attendance :8004 | `/attendance/check-in` |
+| `http://localhost:8080/gateway/health` | Gateway itself | health check |
+
+**Catatan:** Komunikasi antar service (internal) tetap langsung via Docker network (`http://auth-service:8001`, dll.) — gateway hanya untuk traffic eksternal.
+
+### Rate Limiting
+
+| Zone | Limit | Endpoint | Response |
+|------|-------|----------|----------|
+| `api_general` | 100 req/s (burst 50) | events, registrations, attendance | HTTP 429 |
+| `api_auth` | 10 req/s (burst 20) | `/auth/*` (kecuali login/register) | HTTP 429 |
+| `api_auth_strict` | 5 req/min (burst 3) | `/auth/login`, `/auth/register` | HTTP 429 |
+
+Konfigurasi: [`gateway/nginx.conf`](gateway/nginx.conf)
+
+### Contoh via Gateway
+
+```http
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{"email": "organizer@campus.edu", "password": "organizer123"}
+```
+
+```http
+GET http://localhost:8080/events
+Authorization: Bearer <token>
+```
+
 ## Akun Development (Seed)
 
 | Email | Password | Role |
@@ -155,7 +201,7 @@ pytest -v
 | `test_phase3_flow.py` | Attendance |
 | `test_contract_event.py` | Contract Registration ↔ Event |
 | `test_contract_registration.py` | Contract Attendance ↔ Registration |
-| `test_observability.py` | Prometheus & metrics |
+| `test_gateway.py` | API Gateway routing & rate limiting |
 
 ### Unit & Integration (Per Service)
 
