@@ -6,47 +6,74 @@ on:
   pull_request:
     branches: [main, master]
 
+permissions:
+  contents: read
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
+
     steps:
-      # Checkout sibling service repos (same GitHub org, standard repo names).
-      # For monorepo: use root .github/workflows/e2e.yml instead.
+      # Checkout infra repo (main repo)
       - uses: actions/checkout@v4
         with:
           path: kampusevent-infrastructure
 
-      - uses: actions/checkout@v4
+      # IMPORTANT: cross-repo access needs PAT or GitHub App token
+      - name: Checkout Auth Service
+        uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/kampusevent-auth-service
+          token: ${{ secrets.ORG_PAT }}
           path: kampusevent-auth-service
 
-      - uses: actions/checkout@v4
+      - name: Checkout Event Service
+        uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/kampusevent-event-service
+          token: ${{ secrets.ORG_PAT }}
           path: kampusevent-event-service
 
-      - uses: actions/checkout@v4
+      - name: Checkout Registration Service
+        uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/kampusevent-registration-service
+          token: ${{ secrets.ORG_PAT }}
           path: kampusevent-registration-service
 
-      - uses: actions/checkout@v4
+      - name: Checkout Attendance Service
+        uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/kampusevent-attendance-service
+          token: ${{ secrets.ORG_PAT }}
           path: kampusevent-attendance-service
 
+      # Start full stack
       - name: Start stack
         working-directory: kampusevent-infrastructure
         run: |
           docker compose up --build -d
-          sleep 45
+
+          echo "Waiting for services to be healthy..."
+
+          # simple healthcheck loop (replace sleep 45)
+          for i in {1..30}; do
+            if docker compose ps | grep -q "healthy"; then
+              echo "Services are healthy"
+              break
+            fi
+            echo "Waiting..."
+            sleep 5
+          done
+
           docker compose ps
 
+      # Python setup
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # Run E2E tests
       - name: Run E2E tests
         working-directory: kampusevent-infrastructure/e2e-tests
         run: |
