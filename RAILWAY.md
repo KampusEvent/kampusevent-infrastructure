@@ -230,6 +230,8 @@ Setelah Frontend deploy → update `FRONTEND_ORIGIN` di Gateway → redeploy Gat
 | CORS error | `FRONTEND_ORIGIN` salah | Harus persis `https://...` frontend |
 | Jaeger log spam | OTEL ke localhost | Kosongkan `OTEL_EXPORTER_OTLP_ENDPOINT` |
 | 503 registrasi/check-in | URL service salah | Cek `EVENT_SERVICE_URL`, dll. (URL publik) |
+| Gateway 500 `invalid URL prefix` | URL upstream tanpa `https://` | Set `AUTH_SERVICE_URL=https://...` (bukan hostname saja) |
+| Gateway crash `map_hash_bucket_size` | URL `FRONTEND_ORIGIN` terlalu panjang | Push gateway terbaru (regex CORS) atau pakai URL frontend lebih pendek |
 
 ---
 

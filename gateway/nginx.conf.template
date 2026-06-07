@@ -21,10 +21,13 @@ http {
     limit_req_status 429;
     limit_req_log_level warn;
 
+    map_hash_bucket_size 128;
+    map_hash_max_size 4096;
+
     map $http_origin $cors_origin {
         default "";
         "~^https?://(localhost|127\.0\.0\.1)(:\d+)?$" $http_origin;
-        "${FRONTEND_ORIGIN}" $http_origin;
+        "~^${FRONTEND_ORIGIN_REGEX}$" $http_origin;
     }
 
     server {
