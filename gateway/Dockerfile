@@ -1,6 +1,7 @@
 FROM nginx:1.25-alpine
 
 COPY nginx.conf /etc/nginx/nginx.conf
+COPY cors.inc /etc/nginx/cors.inc
 
 EXPOSE 80
 
