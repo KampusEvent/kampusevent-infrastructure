@@ -2,7 +2,6 @@ import httpx
 import pytest
 
 
-@pytest.mark.skip(reason="TODO: Implement after all services are ready")
 @pytest.mark.asyncio
 async def test_full_event_flow(
     auth_url: str,
@@ -24,7 +23,7 @@ async def test_full_event_flow(
         # Step 1: Organizer login
         organizer_login = await client.post(
             f"{auth_url}/login",
-            json={"email": "organizer@campus.edu", "password": "password"},
+            json={"email": "organizer@campus.edu", "password": "organizer123"},
         )
         assert organizer_login.status_code == 200
         organizer_token = organizer_login.json()["access_token"]
@@ -48,7 +47,7 @@ async def test_full_event_flow(
         # Step 3: Participant login
         participant_login = await client.post(
             f"{auth_url}/login",
-            json={"email": "participant@campus.edu", "password": "password"},
+            json={"email": "participant@campus.edu", "password": "participant123"},
         )
         assert participant_login.status_code == 200
         participant_token = participant_login.json()["access_token"]
