@@ -184,7 +184,8 @@ Demo accounts (`SEED_USERS=true`): `organizer@campus.edu` / `organizer123`, dll.
 
 **Root Directory:** `/` (default — pakai `railway.toml` di root repo) **atau** `gateway`.
 
-> Build gagal *"Railpack could not determine how to build"* → Railway tidak menemukan Dockerfile. Push `railway.toml` di root infra, atau set Root Directory = `gateway`.
+> Build gagal *"Railpack could not determine how to build"* → push `railway.toml` + `Dockerfile` di root infra.  
+> Build gagal *`docker-entrypoint.sh: not found`* → jangan pakai `gateway/Dockerfile` dari root; pakai `Dockerfile` di root repo (sudah disediakan).
 
 | Variable | Nilai | Wajib |
 |----------|-------|-------|
@@ -219,7 +220,8 @@ Setelah Frontend deploy → update `FRONTEND_ORIGIN` di Gateway → redeploy Gat
 
 | Gejala | Penyebab | Solusi |
 |--------|----------|--------|
-| Railpack build error (Gateway) | Root repo tanpa `railway.toml` | Push `kampusevent-infrastructure/railway.toml` atau Root Directory = `gateway` |
+| Railpack build error (Gateway) | Tanpa `railway.toml` di root | Push `railway.toml` + `Dockerfile` di root infra |
+| `docker-entrypoint.sh: not found` | Build context root, COPY salah | Pakai `Dockerfile` di root (bukan `gateway/Dockerfile`) |
 | `localhost:5432` refused | `DATABASE_URL` belum diset | Set dari `DATABASE_PUBLIC_URL` |
 | `railway.internal` not found | URL internal / beda project | Pakai `DATABASE_PUBLIC_URL` |
 | 502 Application failed to respond | Port mismatch (`EXPOSE` vs `$PORT`) | Push Dockerfile terbaru (tanpa EXPOSE) atau set Port di Networking |
@@ -236,7 +238,7 @@ Setelah Frontend deploy → update `FRONTEND_ORIGIN` di Gateway → redeploy Gat
 | Repo | File Railway |
 |------|----------------|
 | Backend (×4) | `Dockerfile`, `railway.toml`, `app/config.py` (DB URL normalize) |
-| Gateway | `gateway/Dockerfile`, `gateway/nginx.conf.template`, `gateway/docker-entrypoint.sh`, `gateway/railway.toml` |
+| Gateway | `railway.toml` + `Dockerfile` (root), `gateway/*` (nginx template, entrypoint) |
 | Frontend | `Dockerfile`, `nginx.conf.template`, `docker-entrypoint.sh`, `railway.toml` |
 
 Migrasi: `alembic upgrade head` otomatis saat container start.

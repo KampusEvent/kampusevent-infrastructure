@@ -3,8 +3,8 @@
 
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "gateway/Dockerfile"
-watchPatterns = ["gateway/**"]
+dockerfilePath = "Dockerfile"
+watchPatterns = ["gateway/**", "Dockerfile"]
 
 [deploy]
 healthcheckPath = "/gateway/health"
