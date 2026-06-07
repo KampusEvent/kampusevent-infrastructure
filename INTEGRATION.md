@@ -249,6 +249,19 @@ cd kampusevent-attendance-service && pytest    # 12
 
 **Total: 71 tests** (51 service + 20 E2E).
 
+## Deploy Production (Railway)
+
+Panduan lengkap multi-service: [RAILWAY.md](RAILWAY.md).
+
+Ringkasan pitfall yang sudah ditangani di repo:
+
+| Masalah | Mitigasi di codebase |
+|---------|---------------------|
+| 502 port mismatch | Dockerfile tanpa `EXPOSE` fixed; uvicorn/nginx listen `$PORT` |
+| DB internal URL | `DATABASE_PUBLIC_URL` → `DATABASE_URL`; `postgres://` auto-normalize |
+| Jaeger spam di Railway | `OTEL_EXPORTER_OTLP_ENDPOINT` kosong = tracing off |
+| CORS cross-origin | Gateway `FRONTEND_ORIGIN`; Auth cookie `Secure` + `SameSite=none` |
+
 ## Environment Variables
 
 Shared via `kampusevent-infrastructure/.env`:

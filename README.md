@@ -95,6 +95,20 @@ Rate limiting (NGINX):
 
 Lihat [INTEGRATION.md](INTEGRATION.md) untuk detail routing & CORS (credentials untuk refresh cookie).
 
+## Deploy Railway (Gateway)
+
+Panduan lengkap: [RAILWAY.md](RAILWAY.md) — section **API Gateway**.
+
+| Item | Nilai |
+|------|-------|
+| Root Directory | **`gateway`** |
+| PostgreSQL | Tidak perlu |
+| Upstreams | `AUTH_SERVICE_URL`, `EVENT_SERVICE_URL`, dll. (URL publik) |
+| CORS | `FRONTEND_ORIGIN` = URL publik frontend |
+| DNS | `NGINX_RESOLVER=1.1.1.1` |
+| Port | Nginx listen `${PORT}` — tanpa `EXPOSE` fixed |
+| Health | `GET /gateway/health` |
+
 ## Troubleshooting
 
 **Service tidak start:** `docker compose logs <service-name>`

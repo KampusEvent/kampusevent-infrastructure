@@ -1,9 +1,11 @@
 FROM nginx:1.25-alpine
 
-COPY nginx.conf /etc/nginx/nginx.conf
+RUN apk add --no-cache gettext wget
+
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY cors.inc /etc/nginx/cors.inc
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN sed -i 's/\r$//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 
-EXPOSE 80
-
-HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
-    CMD wget -qO- http://localhost/gateway/health || exit 1
+# Railway injects PORT — nginx listens via docker-entrypoint.sh; do not EXPOSE fixed port.
+ENTRYPOINT ["/docker-entrypoint.sh"]

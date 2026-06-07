@@ -1,0 +1,153 @@
+worker_processes auto;
+error_log /var/log/nginx/error.log warn;
+pid /var/run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timeout 65;
+
+    resolver ${NGINX_RESOLVER} valid=10s ipv6=off;
+
+    limit_req_zone $binary_remote_addr zone=api_general:10m rate=100r/s;
+    limit_req_zone $binary_remote_addr zone=api_auth:10m rate=10r/s;
+    limit_req_zone $binary_remote_addr zone=api_auth_strict:10m rate=60r/m;
+
+    limit_req_status 429;
+    limit_req_log_level warn;
+
+    map $http_origin $cors_origin {
+        default "";
+        "~^https?://(localhost|127\.0\.0\.1)(:\d+)?$" $http_origin;
+        "${FRONTEND_ORIGIN}" $http_origin;
+    }
+
+    server {
+        listen ${PORT};
+        server_name _;
+
+        location = /gateway/health {
+            access_log off;
+            default_type application/json;
+            return 200 '{"status":"ok","gateway":"nginx"}';
+        }
+
+        location ~ ^/auth/(login|register)$ {
+            include /etc/nginx/cors.inc;
+            limit_req zone=api_auth_strict burst=15 nodelay;
+            set $auth_backend ${AUTH_SERVICE_URL};
+            proxy_pass $auth_backend/$1;
+            proxy_ssl_server_name on;
+            proxy_set_header Host $proxy_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Gateway-Service auth-service;
+        }
+
+        location /auth/ {
+            include /etc/nginx/cors.inc;
+            limit_req zone=api_auth burst=20 nodelay;
+            set $auth_backend ${AUTH_SERVICE_URL};
+            proxy_pass $auth_backend/;
+            proxy_ssl_server_name on;
+            proxy_set_header Host $proxy_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Gateway-Service auth-service;
+        }
+
+        location = /events/health {
+            access_log off;
+            set $event_backend ${EVENT_SERVICE_URL};
+            proxy_pass $event_backend/health;
+            proxy_ssl_server_name on;
+            proxy_set_header Host $proxy_host;
+        }
+
+        location = /events/metrics {
+            access_log off;
+            set $event_backend ${EVENT_SERVICE_URL};
+            proxy_pass $event_backend/metrics;
+            proxy_ssl_server_name on;
+            proxy_set_header Host $proxy_host;
+        }
+
+        location /events {
+            include /etc/nginx/cors.inc;
+            limit_req zone=api_general burst=50 nodelay;
+            set $event_backend ${EVENT_SERVICE_URL};
+            proxy_pass $event_backend/events;
+            proxy_ssl_server_name on;
+            proxy_set_header Host $proxy_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Gateway-Service event-service;
+        }
+
+        location = /registrations/health {
+            access_log off;
+            set $registration_backend ${REGISTRATION_SERVICE_URL};
+            proxy_pass $registration_backend/health;
+            proxy_ssl_server_name on;
+            proxy_set_header Host $proxy_host;
+        }
+
+        location = /registrations/metrics {
+            access_log off;
+            set $registration_backend ${REGISTRATION_SERVICE_URL};
+            proxy_pass $registration_backend/metrics;
+            proxy_ssl_server_name on;
+            proxy_set_header Host $proxy_host;
+        }
+
+        location /registrations {
+            include /etc/nginx/cors.inc;
+            limit_req zone=api_general burst=50 nodelay;
+            set $registration_backend ${REGISTRATION_SERVICE_URL};
+            proxy_pass $registration_backend/registrations;
+            proxy_ssl_server_name on;
+            proxy_set_header Host $proxy_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Gateway-Service registration-service;
+        }
+
+        location = /attendance/health {
+            access_log off;
+            set $attendance_backend ${ATTENDANCE_SERVICE_URL};
+            proxy_pass $attendance_backend/health;
+            proxy_ssl_server_name on;
+            proxy_set_header Host $proxy_host;
+        }
+
+        location = /attendance/metrics {
+            access_log off;
+            set $attendance_backend ${ATTENDANCE_SERVICE_URL};
+            proxy_pass $attendance_backend/metrics;
+            proxy_ssl_server_name on;
+            proxy_set_header Host $proxy_host;
+        }
+
+        location /attendance {
+            include /etc/nginx/cors.inc;
+            limit_req zone=api_general burst=50 nodelay;
+            set $attendance_backend ${ATTENDANCE_SERVICE_URL};
+            proxy_pass $attendance_backend/attendance;
+            proxy_ssl_server_name on;
+            proxy_set_header Host $proxy_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Gateway-Service attendance-service;
+        }
+    }
+}
