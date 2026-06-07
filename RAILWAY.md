@@ -227,7 +227,7 @@ Setelah Frontend deploy → update `FRONTEND_ORIGIN` di Gateway → redeploy Gat
 | 502 Application failed to respond | Port mismatch (`EXPOSE` vs `$PORT`) | Push Dockerfile terbaru (tanpa EXPOSE) atau set Port di Networking |
 | 500 login `samesite must be...` | `REFRESH_COOKIE_SAMESITE` salah | Set `none` (lowercase, tanpa `"`) — bukan `None`, `NONE`, atau kosong |
 | 401 login | User belum di-seed | `SEED_USERS=true`, redeploy Auth |
-| CORS error | `FRONTEND_ORIGIN` salah | Harus persis `https://...` frontend |
+| CORS error / credentials `''` | `FRONTEND_ORIGIN` = URL Gateway (salah) | Harus URL **Frontend**: `https://kampusevent-frontend-...up.railway.app` |
 | Jaeger log spam | OTEL ke localhost | Kosongkan `OTEL_EXPORTER_OTLP_ENDPOINT` |
 | 503 registrasi/check-in | URL service salah | Cek `EVENT_SERVICE_URL`, dll. (URL publik) |
 | Gateway 500 `invalid URL prefix` | URL upstream tanpa `https://` | Set `AUTH_SERVICE_URL=https://...` (bukan hostname saja) |

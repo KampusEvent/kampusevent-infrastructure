@@ -28,6 +28,7 @@ http {
         default "";
         "~^https?://(localhost|127\.0\.0\.1)(:\d+)?$" $http_origin;
         "~^${FRONTEND_ORIGIN_REGEX}$" $http_origin;
+        "~^https://[a-z0-9-]+\.up\.railway\.app$" $http_origin;
     }
 
     server {
