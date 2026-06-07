@@ -17,7 +17,6 @@ sequenceDiagram
     O->>Auth: POST /login
     O->>Event: POST /events
     P->>Reg: POST /registrations
-    Reg->>Auth: GET /me
     Reg->>Event: GET /events/{id}
     Reg-->>P: ticket_code
     O->>Att: POST /attendance/check-in
@@ -30,10 +29,11 @@ sequenceDiagram
 
 | From | To | Endpoint | Purpose |
 |------|-----|----------|---------|
-| Registration | Auth | `GET /me` | Validasi JWT participant |
 | Registration | Event | `GET /events/{id}` | Validasi event, status, kuota, kepemilikan |
 | Attendance | Registration | `GET /registrations/ticket/{code}` | Validasi tiket (wajib `X-Internal-API-Key`) |
 | Attendance | Event | `GET /events/{id}` | Verifikasi organizer pemilik event |
+
+**JWT validation:** Auth, Event, Registration, dan Attendance semua decode JWT **lokal** dengan shared `JWT_SECRET` — tidak ada HTTP call ke Auth untuk setiap request.
 
 **Aturan:** Tidak ada akses langsung ke database service lain.
 
@@ -100,7 +100,7 @@ Client → API Gateway :8080 → Microservice
 |------|-------|----------|----------|
 | `api_general` | 100 req/s (burst 50) | events, registrations, attendance | HTTP 429 |
 | `api_auth` | 10 req/s (burst 20) | `/auth/*` (kecuali login/register) | HTTP 429 |
-| `api_auth_strict` | 5 req/min (burst 3) | `/auth/login`, `/auth/register` | HTTP 429 |
+| `api_auth_strict` | 60 req/min (burst 15) | `/auth/login`, `/auth/register` | HTTP 429 |
 
 Konfigurasi: [`gateway/nginx.conf`](gateway/nginx.conf)
 
@@ -224,6 +224,7 @@ pytest -v
 | `test_phase1_flow.py` | Auth + Event |
 | `test_phase2_flow.py` | Registration |
 | `test_phase3_flow.py` | Attendance |
+| `test_contract_auth.py` | Contract Auth `GET /me` |
 | `test_contract_event.py` | Contract Registration ↔ Event |
 | `test_contract_registration.py` | Contract Attendance ↔ Registration |
 | `test_gateway.py` | API Gateway routing & rate limiting |

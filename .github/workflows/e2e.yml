@@ -1,0 +1,54 @@
+name: E2E
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout sibling service repos (same GitHub org, standard repo names).
+      # For monorepo: use root .github/workflows/e2e.yml instead.
+      - uses: actions/checkout@v4
+        with:
+          path: kampusevent-infrastructure
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/kampusevent-auth-service
+          path: kampusevent-auth-service
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/kampusevent-event-service
+          path: kampusevent-event-service
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/kampusevent-registration-service
+          path: kampusevent-registration-service
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/kampusevent-attendance-service
+          path: kampusevent-attendance-service
+
+      - name: Start stack
+        working-directory: kampusevent-infrastructure
+        run: |
+          docker compose up --build -d
+          sleep 45
+          docker compose ps
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run E2E tests
+        working-directory: kampusevent-infrastructure/e2e-tests
+        run: |
+          pip install -r requirements.txt
+          pytest -v

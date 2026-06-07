@@ -6,10 +6,11 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_full_event_flow(
-    auth_url: str,
     event_url: str,
     registration_url: str,
     attendance_url: str,
+    organizer_token: str,
+    participant_token: str,
 ) -> None:
     """
     End-to-end scenario:
@@ -22,15 +23,7 @@ async def test_full_event_flow(
     7. Verify attendance recorded
     """
     async with httpx.AsyncClient() as client:
-        # Step 1: Organizer login
-        organizer_login = await client.post(
-            f"{auth_url}/login",
-            json={"email": "organizer@campus.edu", "password": "organizer123"},
-        )
-        assert organizer_login.status_code == 200
-        organizer_token = organizer_login.json()["access_token"]
-
-        # Step 2: Create event
+        # Step 1–2: Create event (organizer token from fixture)
         create_event = await client.post(
             f"{event_url}/events",
             json={
@@ -46,15 +39,7 @@ async def test_full_event_flow(
         assert create_event.status_code == 201
         event_id = create_event.json()["id"]
 
-        # Step 3: Participant login
-        participant_login = await client.post(
-            f"{auth_url}/login",
-            json={"email": "participant@campus.edu", "password": "participant123"},
-        )
-        assert participant_login.status_code == 200
-        participant_token = participant_login.json()["access_token"]
-
-        # Step 4: Register for event
+        # Step 3–4: Register for event
         register = await client.post(
             f"{registration_url}/registrations",
             json={"event_id": event_id},
@@ -83,20 +68,15 @@ async def test_full_event_flow(
         assert any(r["ticket_code"] == ticket_code for r in records)
 
 
-def test_all_services_health(
-    auth_url: str,
-    event_url: str,
-    registration_url: str,
-    attendance_url: str,
-) -> None:
-    """Verify all services are reachable (run after docker compose up)."""
+def test_all_services_health(gateway_url: str) -> None:
+    """Verify all services are reachable via API Gateway."""
     services = {
-        "auth": auth_url,
-        "event": event_url,
-        "registration": registration_url,
-        "attendance": attendance_url,
+        "auth": f"{gateway_url}/auth/health",
+        "event": f"{gateway_url}/events/health",
+        "registration": f"{gateway_url}/registrations/health",
+        "attendance": f"{gateway_url}/attendance/health",
     }
     for name, url in services.items():
-        response = httpx.get(f"{url}/health", timeout=5.0)
+        response = httpx.get(url, timeout=5.0)
         assert response.status_code == 200, f"{name} service unhealthy"
         assert response.json() == {"status": "ok"}

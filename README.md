@@ -70,6 +70,7 @@ pytest -v
 | `test_phase1_flow.py` | Auth + Event |
 | `test_phase2_flow.py` | Registration |
 | `test_phase3_flow.py` | Attendance |
+| `test_contract_auth.py` | Contract Auth `GET /me` |
 | `test_contract_event.py` | Contract Registration ↔ Event |
 | `test_contract_registration.py` | Contract Attendance ↔ Registration |
 | `test_observability.py` | Prometheus targets & metrics |
@@ -90,7 +91,7 @@ Single entry point untuk client eksternal: **http://localhost:8080**
 Rate limiting (NGINX):
 - General API: 100 req/s per IP (burst 50)
 - Auth endpoints: 10 req/s per IP (burst 20)
-- Login/register: 5 req/min per IP (burst 3) → HTTP 429
+- Login/register: 60 req/min per IP (burst 15) → HTTP 429
 
 Lihat [INTEGRATION.md](INTEGRATION.md) untuk detail routing.
 

@@ -3,25 +3,32 @@ import os
 import httpx
 import pytest
 
-
-@pytest.fixture(scope="session")
-def auth_url() -> str:
-    return os.getenv("E2E_AUTH_URL", "http://localhost:8001")
+GATEWAY_URL = os.getenv("E2E_GATEWAY_URL", "http://localhost:8080")
 
 
 @pytest.fixture(scope="session")
-def event_url() -> str:
-    return os.getenv("E2E_EVENT_URL", "http://localhost:8002")
+def gateway_url() -> str:
+    return GATEWAY_URL
 
 
 @pytest.fixture(scope="session")
-def registration_url() -> str:
-    return os.getenv("E2E_REGISTRATION_URL", "http://localhost:8003")
+def auth_url(gateway_url: str) -> str:
+    return os.getenv("E2E_AUTH_URL", f"{gateway_url}/auth")
 
 
 @pytest.fixture(scope="session")
-def attendance_url() -> str:
-    return os.getenv("E2E_ATTENDANCE_URL", "http://localhost:8004")
+def event_url(gateway_url: str) -> str:
+    return os.getenv("E2E_EVENT_URL", gateway_url)
+
+
+@pytest.fixture(scope="session")
+def registration_url(gateway_url: str) -> str:
+    return os.getenv("E2E_REGISTRATION_URL", gateway_url)
+
+
+@pytest.fixture(scope="session")
+def attendance_url(gateway_url: str) -> str:
+    return os.getenv("E2E_ATTENDANCE_URL", gateway_url)
 
 
 @pytest.fixture(scope="session")

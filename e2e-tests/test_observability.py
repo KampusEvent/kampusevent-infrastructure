@@ -8,15 +8,15 @@ pytestmark = pytest.mark.integration
 SERVICE_JOBS = ("auth-service", "event-service", "registration-service", "attendance-service")
 
 
-def test_all_services_expose_metrics(
-    auth_url: str,
-    event_url: str,
-    registration_url: str,
-    attendance_url: str,
-) -> None:
-    urls = [auth_url, event_url, registration_url, attendance_url]
+def test_all_services_expose_metrics(gateway_url: str) -> None:
+    urls = [
+        f"{gateway_url}/auth/metrics",
+        f"{gateway_url}/events/metrics",
+        f"{gateway_url}/registrations/metrics",
+        f"{gateway_url}/attendance/metrics",
+    ]
     for url in urls:
-        response = httpx.get(f"{url}/metrics", timeout=5.0)
+        response = httpx.get(url, timeout=5.0)
         assert response.status_code == 200
         assert "http_requests_total" in response.text
 

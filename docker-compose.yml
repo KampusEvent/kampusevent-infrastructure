@@ -74,8 +74,6 @@ services:
       context: ../kampusevent-auth-service
       dockerfile: Dockerfile
     container_name: kampusevent-auth-service
-    ports:
-      - "8001:8001"
     environment:
       SERVICE_NAME: auth-service
       DATABASE_URL: postgresql://auth_user:auth_pass@auth-db:5432/auth_db
@@ -104,8 +102,6 @@ services:
       context: ../kampusevent-event-service
       dockerfile: Dockerfile
     container_name: kampusevent-event-service
-    ports:
-      - "8002:8002"
     environment:
       SERVICE_NAME: event-service
       DATABASE_URL: postgresql://event_user:event_pass@event-db:5432/event_db
@@ -132,22 +128,17 @@ services:
       context: ../kampusevent-registration-service
       dockerfile: Dockerfile
     container_name: kampusevent-registration-service
-    ports:
-      - "8003:8003"
     environment:
       SERVICE_NAME: registration-service
       DATABASE_URL: postgresql://registration_user:registration_pass@registration-db:5432/registration_db
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
       EVENT_SERVICE_URL: http://event-service:8002
-      AUTH_SERVICE_URL: http://auth-service:8001
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-change-me-internal-key}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     depends_on:
       registration-db:
-        condition: service_healthy
-      auth-service:
         condition: service_healthy
       event-service:
         condition: service_healthy
@@ -167,8 +158,6 @@ services:
       context: ../kampusevent-attendance-service
       dockerfile: Dockerfile
     container_name: kampusevent-attendance-service
-    ports:
-      - "8004:8004"
     environment:
       SERVICE_NAME: attendance-service
       DATABASE_URL: postgresql://attendance_user:attendance_pass@attendance-db:5432/attendance_db

@@ -5,20 +5,14 @@ pytestmark = pytest.mark.integration
 
 
 def test_phase2_registration_flow(
-    auth_url: str,
     event_url: str,
     registration_url: str,
+    organizer_token: str,
+    participant_token: str,
     internal_api_key: str,
 ) -> None:
     """Phase 2: organizer creates event, participant registers and receives ticket."""
     with httpx.Client(timeout=15.0) as client:
-        organizer_login = client.post(
-            f"{auth_url}/login",
-            json={"email": "organizer@campus.edu", "password": "organizer123"},
-        )
-        assert organizer_login.status_code == 200
-        organizer_token = organizer_login.json()["access_token"]
-
         create_event = client.post(
             f"{event_url}/events",
             json={
@@ -33,13 +27,6 @@ def test_phase2_registration_flow(
         )
         assert create_event.status_code == 201, create_event.text
         event_id = create_event.json()["id"]
-
-        participant_login = client.post(
-            f"{auth_url}/login",
-            json={"email": "participant@campus.edu", "password": "participant123"},
-        )
-        assert participant_login.status_code == 200
-        participant_token = participant_login.json()["access_token"]
 
         register = client.post(
             f"{registration_url}/registrations",

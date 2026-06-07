@@ -5,18 +5,12 @@ pytestmark = pytest.mark.integration
 
 
 def test_phase1_auth_and_event_flow(
-    auth_url: str,
     event_url: str,
+    organizer_token: str,
+    participant_token: str,
 ) -> None:
     """Phase 1: login organizer, create event, participant can view."""
     with httpx.Client(timeout=10.0) as client:
-        organizer_login = client.post(
-            f"{auth_url}/login",
-            json={"email": "organizer@campus.edu", "password": "organizer123"},
-        )
-        assert organizer_login.status_code == 200, organizer_login.text
-        organizer_token = organizer_login.json()["access_token"]
-
         create_event = client.post(
             f"{event_url}/events",
             json={
@@ -36,12 +30,6 @@ def test_phase1_auth_and_event_flow(
         assert list_events.status_code == 200
         assert any(e["id"] == event_id for e in list_events.json())
 
-        participant_login = client.post(
-            f"{auth_url}/login",
-            json={"email": "participant@campus.edu", "password": "participant123"},
-        )
-        assert participant_login.status_code == 200
-
         forbidden = client.post(
             f"{event_url}/events",
             json={
@@ -50,6 +38,6 @@ def test_phase1_auth_and_event_flow(
                 "location": "X",
                 "quota": 10,
             },
-            headers={"Authorization": f"Bearer {participant_login.json()['access_token']}"},
+            headers={"Authorization": f"Bearer {participant_token}"},
         )
         assert forbidden.status_code == 403

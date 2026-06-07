@@ -29,17 +29,10 @@ def test_gateway_routes_auth_login(gateway_url: str) -> None:
     assert "access_token" in response.json()
 
 
-def test_gateway_routes_events(gateway_url: str) -> None:
-    login = httpx.post(
-        f"{gateway_url}/auth/login",
-        json={"email": "organizer@campus.edu", "password": "organizer123"},
-        timeout=10.0,
-    )
-    token = login.json()["access_token"]
-
+def test_gateway_routes_events(gateway_url: str, organizer_token: str) -> None:
     response = httpx.get(
         f"{gateway_url}/events",
-        headers={"Authorization": f"Bearer {token}"},
+        headers={"Authorization": f"Bearer {organizer_token}"},
         timeout=10.0,
     )
     assert response.status_code == 200
@@ -95,10 +88,10 @@ def test_gateway_full_flow_via_gateway(gateway_url: str) -> None:
     assert check_in.status_code == 201
 
 
-def test_gateway_rate_limit_returns_429(gateway_url: str) -> None:
+def test_zzz_gateway_rate_limit_returns_429(gateway_url: str) -> None:
     """Strict rate limit on /auth/login — expect 429 after burst exceeded."""
     responses = []
-    for _ in range(20):
+    for _ in range(40):
         resp = httpx.post(
             f"{gateway_url}/auth/login",
             json={"email": "nonexistent@test.com", "password": "wrong"},
