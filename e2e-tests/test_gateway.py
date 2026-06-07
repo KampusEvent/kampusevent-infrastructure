@@ -1,6 +1,8 @@
 import httpx
 import pytest
 
+from conftest import start_event_for_check_in, upcoming_event_payload
+
 pytestmark = pytest.mark.integration
 
 GATEWAY_URL = "http://localhost:8080"
@@ -50,13 +52,11 @@ def test_gateway_full_flow_via_gateway(gateway_url: str) -> None:
 
     create_event = httpx.post(
         f"{gateway_url}/events",
-        json={
-            "title": "Gateway Flow Event",
-            "date": "2026-12-30",
-            "location": "Aula",
-            "quota": 10,
-            "status": "active",
-        },
+        json=upcoming_event_payload(
+            title="Gateway Flow Event",
+            location="Aula",
+            quota=10,
+        ),
         headers={"Authorization": f"Bearer {organizer_token}"},
         timeout=10.0,
     )
@@ -78,6 +78,9 @@ def test_gateway_full_flow_via_gateway(gateway_url: str) -> None:
     )
     assert register.status_code == 201
     ticket_code = register.json()["ticket_code"]
+
+    with httpx.Client(timeout=10.0) as client:
+        start_event_for_check_in(client, gateway_url, event_id, organizer_token)
 
     check_in = httpx.post(
         f"{gateway_url}/attendance/check-in",

@@ -1,9 +1,49 @@
 import os
+from datetime import datetime, timedelta, timezone
 
 import httpx
 import pytest
 
 GATEWAY_URL = os.getenv("E2E_GATEWAY_URL", "http://localhost:8080")
+
+
+def iso_utc(value: datetime) -> str:
+    return value.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def upcoming_event_payload(**overrides: object) -> dict:
+    now = datetime.now(timezone.utc)
+    starts = now + timedelta(days=1)
+    payload = {
+        "title": "Test Event",
+        "description": "",
+        "starts_at": iso_utc(starts),
+        "ends_at": iso_utc(starts + timedelta(hours=8)),
+        "location": "Aula",
+        "quota": 10,
+        "status": "active",
+    }
+    payload.update(overrides)
+    return payload
+
+
+def ongoing_schedule_payload() -> dict:
+    now = datetime.now(timezone.utc)
+    return {
+        "starts_at": iso_utc(now - timedelta(hours=1)),
+        "ends_at": iso_utc(now + timedelta(hours=2)),
+    }
+
+
+def start_event_for_check_in(client: httpx.Client, event_url: str, event_id: str, token: str) -> None:
+    """Shift event schedule so effective status becomes ongoing (for check-in E2E)."""
+    response = client.put(
+        f"{event_url}/events/{event_id}",
+        json=ongoing_schedule_payload(),
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["status"] == "ongoing"
 
 
 @pytest.fixture(scope="session")

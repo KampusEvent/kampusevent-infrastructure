@@ -3,6 +3,8 @@ import re
 import httpx
 import pytest
 
+from conftest import start_event_for_check_in, upcoming_event_payload
+
 
 @pytest.mark.asyncio
 async def test_full_event_flow(
@@ -26,14 +28,12 @@ async def test_full_event_flow(
         # Step 1–2: Create event (organizer token from fixture)
         create_event = await client.post(
             f"{event_url}/events",
-            json={
-                "title": "Workshop Microservices",
-                "description": "E2E test event",
-                "date": "2026-12-01",
-                "location": "Lab Komputer",
-                "quota": 50,
-                "status": "active",
-            },
+            json=upcoming_event_payload(
+                title="Workshop Microservices",
+                description="E2E test event",
+                location="Lab Komputer",
+                quota=50,
+            ),
             headers={"Authorization": f"Bearer {organizer_token}"},
         )
         assert create_event.status_code == 201
@@ -48,6 +48,9 @@ async def test_full_event_flow(
         assert register.status_code == 201
         ticket_code = register.json()["ticket_code"]
         assert re.match(r"^EVT-\d{4}-[A-Z0-9]{8}$", ticket_code)
+
+        with httpx.Client() as sync_client:
+            start_event_for_check_in(sync_client, event_url, event_id, organizer_token)
 
         # Step 5: Check-in
         check_in = await client.post(
