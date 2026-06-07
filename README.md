@@ -6,7 +6,7 @@ Repository integrasi untuk seluruh microservices KampusEvent.
 
 - Docker Compose orchestration (semua service + database + observability)
 - Konfigurasi Prometheus, Grafana, Jaeger
-- End-to-End testing
+- End-to-End & Contract testing
 - Dokumentasi integrasi
 
 ## Prerequisites
@@ -43,6 +43,14 @@ docker compose up --build
 
 **Grafana login:** admin / admin (default)
 
+## Dokumentasi Integrasi
+
+Lihat [INTEGRATION.md](INTEGRATION.md) untuk panduan lengkap:
+- Skenario manual step-by-step
+- Service communication map
+- Observability guide
+- Troubleshooting
+
 ## End-to-End Tests
 
 Pastikan stack sudah running, lalu:
@@ -53,22 +61,32 @@ pip install -r requirements.txt
 pytest -v
 ```
 
-- `test_all_services_health` — verifikasi semua service up
-- `test_full_event_flow` — skenario lengkap (skip/TODO)
+| Test | Deskripsi |
+|------|-----------|
+| `test_e2e_flow.py` | Full flow end-to-end |
+| `test_phase1_flow.py` | Auth + Event |
+| `test_phase2_flow.py` | Registration |
+| `test_phase3_flow.py` | Attendance |
+| `test_contract_event.py` | Contract Registration ↔ Event |
+| `test_contract_registration.py` | Contract Attendance ↔ Registration |
+| `test_observability.py` | Prometheus targets & metrics |
 
 ## Troubleshooting
 
-**Service tidak start:** Cek logs dengan `docker compose logs <service-name>`
+**Service tidak start:** `docker compose logs <service-name>`
 
-**Prometheus tidak scrape:** Pastikan semua service healthy di `docker compose ps`
+**Prometheus tidak scrape:** http://localhost:9090/targets — pastikan semua UP
 
-**Jaeger tidak menerima trace:** Verifikasi `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317` di setiap service
+**Jaeger tidak menerima trace:** Verifikasi `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317`
+
+**Grafana kosong:** Jalankan E2E tests untuk generate traffic, lalu refresh dashboard
 
 ## Definition of Done
 
-- [ ] Docker Compose works (all services up)
-- [ ] Prometheus scrapes all /metrics
-- [ ] Grafana RED dashboard visible
-- [ ] Jaeger receives traces
-- [ ] E2E health test passes
-- [ ] E2E full flow test implemented and passes
+- [x] Docker Compose works (all services up)
+- [x] Prometheus scrapes all /metrics
+- [x] Grafana RED dashboard visible
+- [x] Jaeger receives traces
+- [x] E2E health test passes
+- [x] E2E full flow test passes
+- [x] Contract tests pass

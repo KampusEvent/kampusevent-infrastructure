@@ -2,16 +2,19 @@
   "annotations": { "list": [] },
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
+  "graphTooltip": 1,
   "id": null,
   "links": [],
   "panels": [
     {
-      "datasource": { "type": "prometheus", "uid": "Prometheus" },
-      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
       "id": 1,
-      "title": "Rate — HTTP Requests",
+      "title": "Rate — HTTP Requests by Service",
       "type": "timeseries",
       "targets": [
         {
@@ -22,11 +25,14 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "Prometheus" },
-      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
       "id": 2,
-      "title": "Errors — HTTP Error Rate",
+      "title": "Errors — HTTP Error Rate by Service",
       "type": "timeseries",
       "targets": [
         {
@@ -37,16 +43,75 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "Prometheus" },
-      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "s", "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
       "id": 3,
-      "title": "Duration — Request Latency (p95)",
+      "title": "Duration — Request Latency p95 by Service",
       "type": "timeseries",
       "targets": [
         {
           "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))",
-          "legendFormat": "{{service}}",
+          "legendFormat": "{{service}} p95",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 16 },
+      "id": 4,
+      "title": "Auth Service — Total Requests",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(http_requests_total{service=\"auth-service\"})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 16 },
+      "id": 5,
+      "title": "Event Service — Total Requests",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(http_requests_total{service=\"event-service\"})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 16 },
+      "id": 6,
+      "title": "Registration — Total Requests",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(http_requests_total{service=\"registration-service\"})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 16 },
+      "id": 7,
+      "title": "Attendance — Total Requests",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(http_requests_total{service=\"attendance-service\"})",
           "refId": "A"
         }
       ]
@@ -61,5 +126,5 @@
   "timezone": "browser",
   "title": "KampusEvent RED Dashboard",
   "uid": "kampusevent-red",
-  "version": 1
+  "version": 2
 }

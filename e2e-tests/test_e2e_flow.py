@@ -1,3 +1,5 @@
+import re
+
 import httpx
 import pytest
 
@@ -60,6 +62,7 @@ async def test_full_event_flow(
         )
         assert register.status_code == 201
         ticket_code = register.json()["ticket_code"]
+        assert re.match(r"^EVT-\d{4}-[A-Z0-9]{8}$", ticket_code)
 
         # Step 5: Check-in
         check_in = await client.post(
@@ -75,7 +78,9 @@ async def test_full_event_flow(
             headers={"Authorization": f"Bearer {organizer_token}"},
         )
         assert attendance_list.status_code == 200
-        assert len(attendance_list.json()) >= 1
+        records = attendance_list.json()
+        assert len(records) >= 1
+        assert any(r["ticket_code"] == ticket_code for r in records)
 
 
 def test_all_services_health(
