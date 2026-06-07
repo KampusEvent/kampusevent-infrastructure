@@ -236,18 +236,18 @@ pip install -r requirements.txt
 pytest -v
 ```
 
-**19 tests** — full flow, phase 1–3, contract, gateway, observability.
+**20 tests** — full flow, phase 1–3 (termasuk batalkan check-in), contract, gateway, observability.
 
 ### Unit & Integration (Per Service)
 
 ```bash
 cd kampusevent-auth-service && pytest          # 13
 cd kampusevent-event-service && pytest         # 13
-cd kampusevent-registration-service && pytest  # 12
+cd kampusevent-registration-service && pytest  # 13
 cd kampusevent-attendance-service && pytest    # 12
 ```
 
-**Total: 69 tests** (50 service + 19 E2E).
+**Total: 71 tests** (51 service + 20 E2E).
 
 ## Environment Variables
 

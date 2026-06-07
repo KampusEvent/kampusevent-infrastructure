@@ -69,7 +69,7 @@ pytest -v
 | `test_e2e_flow.py` | Full flow end-to-end |
 | `test_phase1_flow.py` | Auth + Event |
 | `test_phase2_flow.py` | Registration |
-| `test_phase3_flow.py` | Attendance (jadwal ongoing untuk check-in) |
+| `test_phase3_flow.py` | Attendance (check-in saat ongoing, batalkan check-in) |
 | `test_contract_auth.py` | Contract Auth `GET /me` |
 | `test_contract_event.py` | Contract Registration ↔ Event |
 | `test_contract_registration.py` | Contract Attendance ↔ Registration |
