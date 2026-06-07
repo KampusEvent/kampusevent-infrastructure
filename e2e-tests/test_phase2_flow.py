@@ -1,6 +1,8 @@
 import httpx
 import pytest
 
+from conftest import upcoming_event_payload
+
 pytestmark = pytest.mark.integration
 
 
@@ -15,14 +17,12 @@ def test_phase2_registration_flow(
     with httpx.Client(timeout=15.0) as client:
         create_event = client.post(
             f"{event_url}/events",
-            json={
-                "title": "Registration Test Event",
-                "description": "Phase 2 E2E",
-                "date": "2026-12-20",
-                "location": "Aula",
-                "quota": 5,
-                "status": "active",
-            },
+            json=upcoming_event_payload(
+                title="Registration Test Event",
+                description="Phase 2 E2E",
+                location="Aula",
+                quota=5,
+            ),
             headers={"Authorization": f"Bearer {organizer_token}"},
         )
         assert create_event.status_code == 201, create_event.text

@@ -3,6 +3,8 @@ import re
 import httpx
 import pytest
 
+from conftest import upcoming_event_payload
+
 pytestmark = pytest.mark.integration
 
 REGISTRATION_CONTRACT_FIELDS = {"id", "event_id", "user_id", "ticket_code", "status", "created_at"}
@@ -20,16 +22,14 @@ def test_registration_ticket_contract(
     with httpx.Client(timeout=15.0) as client:
         create_event = client.post(
             f"{event_url}/events",
-            json={
-                "title": "Contract Registration Event",
-                "date": "2026-11-15",
-                "location": "Aula",
-                "quota": 5,
-                "status": "active",
-            },
+            json=upcoming_event_payload(
+                title="Contract Registration Event",
+                location="Aula",
+                quota=5,
+            ),
             headers={"Authorization": f"Bearer {organizer_token}"},
         )
-        assert create_event.status_code == 201
+        assert create_event.status_code == 201, create_event.text
         event_id = create_event.json()["id"]
 
         register = client.post(
@@ -62,15 +62,14 @@ def test_registration_get_by_id_contract(
     with httpx.Client(timeout=15.0) as client:
         create_event = client.post(
             f"{event_url}/events",
-            json={
-                "title": "Contract Get By ID",
-                "date": "2026-11-20",
-                "location": "Lab",
-                "quota": 5,
-                "status": "active",
-            },
+            json=upcoming_event_payload(
+                title="Contract Get By ID",
+                location="Lab",
+                quota=5,
+            ),
             headers={"Authorization": f"Bearer {organizer_token}"},
         )
+        assert create_event.status_code == 201, create_event.text
         event_id = create_event.json()["id"]
 
         register = client.post(

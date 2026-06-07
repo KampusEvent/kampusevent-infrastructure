@@ -14,66 +14,74 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout infra repo (main repo)
       - uses: actions/checkout@v4
         with:
           path: kampusevent-infrastructure
 
-      # IMPORTANT: cross-repo access needs PAT or GitHub App token
+      # Public sibling repos — no PAT needed. For private repos, set secret ORG_PAT.
       - name: Checkout Auth Service
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/kampusevent-auth-service
-          token: ${{ secrets.ORG_PAT }}
+          token: ${{ secrets.ORG_PAT || github.token }}
           path: kampusevent-auth-service
 
       - name: Checkout Event Service
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/kampusevent-event-service
-          token: ${{ secrets.ORG_PAT }}
+          token: ${{ secrets.ORG_PAT || github.token }}
           path: kampusevent-event-service
 
       - name: Checkout Registration Service
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/kampusevent-registration-service
-          token: ${{ secrets.ORG_PAT }}
+          token: ${{ secrets.ORG_PAT || github.token }}
           path: kampusevent-registration-service
 
       - name: Checkout Attendance Service
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/kampusevent-attendance-service
-          token: ${{ secrets.ORG_PAT }}
+          token: ${{ secrets.ORG_PAT || github.token }}
           path: kampusevent-attendance-service
 
-      # Start full stack
       - name: Start stack
         working-directory: kampusevent-infrastructure
         run: |
+          set -euo pipefail
           docker compose up --build -d
 
-          echo "Waiting for services to be healthy..."
-
-          # simple healthcheck loop (replace sleep 45)
-          for i in {1..30}; do
-            if docker compose ps | grep -q "healthy"; then
-              echo "Services are healthy"
+          echo "Waiting for API Gateway and services..."
+          ready=0
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8080/gateway/health >/dev/null \
+               && curl -sf http://localhost:8080/auth/health >/dev/null \
+               && curl -sf http://localhost:8080/events/health >/dev/null \
+               && curl -sf http://localhost:8080/registrations/health >/dev/null \
+               && curl -sf http://localhost:8080/attendance/health >/dev/null; then
+              echo "All services healthy via gateway (attempt $i)"
+              ready=1
               break
             fi
-            echo "Waiting..."
+            echo "Waiting... ($i/60)"
             sleep 5
           done
 
+          if [ "$ready" -ne 1 ]; then
+            echo "Stack failed to become healthy"
+            docker compose ps
+            docker compose logs --no-color --tail 80
+            exit 1
+          fi
+
           docker compose ps
 
-      # Python setup
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      # Run E2E tests
       - name: Run E2E tests
         working-directory: kampusevent-infrastructure/e2e-tests
         run: |
