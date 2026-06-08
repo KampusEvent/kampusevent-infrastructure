@@ -9,7 +9,8 @@ fi
 GATEWAY_HOST="$(printf '%s' "$GATEWAY_URL" | sed -E 's#^https?://##' | sed 's#/.*$##')"
 export GATEWAY_HOST
 
-envsubst '${GATEWAY_HOST}' < /etc/prometheus/prometheus.yml.template > /etc/prometheus/prometheus.yml
+sed "s|\${GATEWAY_HOST}|${GATEWAY_HOST}|g" \
+    /etc/prometheus/prometheus.yml.template > /etc/prometheus/prometheus.yml
 
 exec /bin/prometheus \
     --config.file=/etc/prometheus/prometheus.yml \

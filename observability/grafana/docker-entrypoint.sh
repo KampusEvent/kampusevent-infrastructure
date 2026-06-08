@@ -11,11 +11,10 @@ if [ -z "${JAEGER_URL:-}" ]; then
     exit 1
 fi
 
-export PROMETHEUS_URL JAEGER_URL
-
 mkdir -p /etc/grafana/provisioning/datasources /etc/grafana/provisioning/dashboards
-envsubst '${PROMETHEUS_URL} ${JAEGER_URL}' \
-    < /etc/grafana/provisioning/datasources/datasource.yml.template \
+sed -e "s|\${PROMETHEUS_URL}|${PROMETHEUS_URL}|g" \
+    -e "s|\${JAEGER_URL}|${JAEGER_URL}|g" \
+    /etc/grafana/provisioning/datasources/datasource.yml.template \
     > /etc/grafana/provisioning/datasources/datasource.yml
 cp /etc/grafana/provisioning/dashboards/dashboard.yml /etc/grafana/provisioning/dashboards/dashboards.yml
 
