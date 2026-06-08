@@ -56,9 +56,21 @@ Di project Auth harus ada: **Auth service** + **PostgreSQL**. Begitu juga Event,
 | **Langsung** ke service | `POST /login` | `GET /health` |
 | **Via Gateway** | `POST /auth/login` | `GET /gateway/health` |
 
-### 5. OpenTelemetry (opsional)
+### 5. Observability di Railway
 
-Tracing **nonaktif** jika `OTEL_EXPORTER_OTLP_ENDPOINT` kosong (default di Railway). Docker Compose lokal tetap set `http://jaeger:4317` di `docker-compose.yml`.
+Stack observability deploy di **project yang sama** dengan API Gateway (`kampusevent-infrastructure`):
+
+| Service | Root Directory | Fungsi |
+|---------|----------------|--------|
+| Traces | `observability/traces` | Jaeger UI + OTLP HTTP collector |
+| Prometheus | `observability/prometheus` | Scrape metrics via Gateway HTTPS |
+| Grafana | `observability/grafana` | Dashboard RED + datasource Jaeger |
+
+**Urutan:** Gateway → Traces → Prometheus → Grafana → set `OTEL_EXPORTER_OTLP_ENDPOINT` di 4 backend.
+
+Detail variable: [RAILWAY-ENV.md](../RAILWAY-ENV.md) section 7.
+
+Lokal (`docker compose up`) tetap pakai Jaeger/Prometheus/Grafana internal; `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317` (gRPC).
 
 ---
 
