@@ -1,3 +1,8 @@
+https://kampusevent-traces-production.up.railway.app/
+https://kampusevent-grafana-production.up.railway.app/
+https://kampusevent-prometheus-production.up.railway.app/
+
+
 # KampusEvent Infrastructure
 
 Repository integrasi untuk seluruh microservices KampusEvent.
